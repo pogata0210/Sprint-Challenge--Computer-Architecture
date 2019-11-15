@@ -125,3 +125,69 @@ class CPU:
         self.pc += 1
         print('Stopping...')
         return False
+
+    # push the value in the given register to the stack
+    def push(self, reg):
+        val = self.reg[reg]
+        self.reg[self.SP] -= 1
+        self.ram[self.reg[self.SP]] = val
+        self.pc += 2
+
+    # pop the value at the top of the stack into the given register
+    def pop(self, reg):
+        val = self.ram[self.reg[self.SP]]
+        self.reg[reg] = val
+        self.reg[self.SP] += 1
+        self.pc += 2
+
+    # Jump to the address stored in the given register
+    def jmp(self, reg):
+        val = self.reg[reg]
+        self.pc = val
+
+    # Compare the values in two registers
+    def cmp(self, reg_a, reg_b):
+        # clear flags from last time cmp ran
+        self.e, self.l, self.g = 0, 0, 0
+        # get values from registers
+        val_1, val_2 = self.reg[reg_a], self.reg[reg_b]
+        # check comparisons
+        if val_1 == val_2:
+            self.e = 1
+        elif val_1 < val_2:
+            self.l = 1
+        elif val_1 > val_2:
+            self.g = 1
+        self.pc += 3
+
+    # if e flag is false jump to the address stored in the given register
+    def jne(self, reg):
+        if self.e == 0:
+            self.pc = self.reg[reg]
+        else:
+            self.pc += 2
+
+    # if e flag is true jump to the address stored in the given register
+    def jeq(self, reg):
+        if self.e == 1:
+            self.pc = self.reg[reg]
+        else:
+            self.pc += 2
+
+    def run(self):
+        """Run the CPU."""
+        running = True
+        while running:
+            command = self.ram[self.pc]
+            num_params = int(bin(command >> 6).replace("0b", ""), 2)
+            operand_a = self.ram[self.pc + 1]
+            operand_b = self.ram[self.pc + 2]
+            if command not in self.branchtable:
+                print(f'command: {command} not recognized')
+                running = False
+            if num_params == 2:
+                self.branchtable[command](operand_a, operand_b)
+            elif num_params == 1:
+                self.branchtable[command](operand_a)
+            else:
+                running = self.branchtable[command]()
