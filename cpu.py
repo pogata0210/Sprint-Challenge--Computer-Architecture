@@ -96,3 +96,32 @@ class CPU:
             print(" %02X" % self.reg[i], end='')
 
         print()
+
+    def ram_read(self, address):
+        # return value stored in passed in address
+        return self.ram[address]
+
+    def ram_write(self, value, address):
+        # writes the given value into given address
+        self.ram[address] = value
+
+    # assign passed in reg to passed in value
+    def ldi(self, reg_a, value):
+        self.reg[reg_a] = value
+        self.pc += 3
+
+    # print value at reg passed in
+    def prn(self, reg_a):
+        print(f'Value: {self.reg[reg_a]}')
+        self.pc += 2
+
+    # call alu to multiply two passed in registers
+    def mul(self, reg_a, reg_b):
+        self.alu('MUL', reg_a, reg_b)
+        self.pc += 3
+
+    # stop the cpu
+    def hlt(self):
+        self.pc += 1
+        print('Stopping...')
+        return False
